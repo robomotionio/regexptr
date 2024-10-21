@@ -403,10 +403,42 @@ func (i *inputString) canCheckPrefix() bool {
 	return true
 }
 
+var turkishCaseFolding = map[rune]rune{
+	'İ': 'i',
+	'I': 'ı',
+	'ı': 'I',
+	'i': 'İ',
+	'Ğ': 'ğ',
+	'ğ': 'Ğ',
+	'Ü': 'ü',
+	'ü': 'Ü',
+	'Ş': 'ş',
+	'ş': 'Ş',
+	'Ç': 'ç',
+	'ç': 'Ç',
+	'Ö': 'ö',
+	'ö': 'Ö',
+}
+
+func turkishEqualFold(r1, r2 rune) bool {
+	if folded, ok := turkishCaseFolding[r1]; ok {
+		return folded == r2
+	}
+	return unicode.ToLower(r1) == unicode.ToLower(r2)
+}
+
 func (i *inputString) hasPrefix(re *Regexp) bool {
+	n := len(re.prefix)
 	if re.prefixFoldCase {
-		n := len(re.prefix)
-		return len(i.str) >= n && strings.EqualFold(i.str[0:n], re.prefix)
+		if len(i.str) < n {
+			return false
+		}
+		for j := 0; j < n; j++ {
+			if !turkishEqualFold(rune(i.str[j]), rune(re.prefix[j])) {
+				return false
+			}
+		}
+		return true
 	}
 	return strings.HasPrefix(i.str, re.prefix)
 }
