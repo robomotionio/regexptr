@@ -446,9 +446,16 @@ func (i *inputString) hasPrefix(re *Regexp) bool {
 func (i *inputString) index(re *Regexp, pos int) int {
 	if re.prefixFoldCase {
 		n := len(re.prefix)
-		// Brute-force compare at every position; could replace with sophisticated algo like strings.Index
+		// Brute-force compare at every position
 		for p := pos; p+n <= len(i.str); {
-			if strings.EqualFold(i.str[p:p+n], re.prefix) {
+			match := true
+			for j := 0; j < n; j++ {
+				if !turkishEqualFold(rune(i.str[p+j]), rune(re.prefix[j])) {
+					match = false
+					break
+				}
+			}
+			if match {
 				return p - pos
 			}
 			_, w := i.step(p)
