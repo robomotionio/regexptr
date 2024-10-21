@@ -11,12 +11,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp/syntax"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/robomotionio/regexptr/syntax"
 )
 
 // TestRE2 tests this package's regexp API against test cases

@@ -5,10 +5,11 @@
 package regexp
 
 import (
-	"regexp/syntax"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/robomotionio/regexptr/syntax"
 )
 
 var runeMergeTests = []struct {
