@@ -403,38 +403,40 @@ func (i *inputString) canCheckPrefix() bool {
 	return true
 }
 
-var turkishCaseFolding = map[rune]rune{
-	'İ': 'i',
-	'I': 'ı',
-	'ı': 'I',
-	'i': 'İ',
-	'Ğ': 'ğ',
-	'ğ': 'Ğ',
-	'Ü': 'ü',
-	'ü': 'Ü',
-	'Ş': 'ş',
-	'ş': 'Ş',
-	'Ç': 'ç',
-	'ç': 'Ç',
-	'Ö': 'ö',
-	'ö': 'Ö',
+// Add this map for Turkish-specific case folding
+var turkishFoldMap = map[rune]rune{
+	'i': 'İ', 'I': 'ı',
+	'ı': 'I', 'İ': 'i',
+	'ü': 'Ü', 'Ü': 'ü',
+	'ğ': 'Ğ', 'Ğ': 'ğ',
+	'ş': 'Ş', 'Ş': 'ş',
+	'ç': 'Ç', 'Ç': 'ç',
+	'ö': 'Ö', 'Ö': 'ö',
 }
 
+// Update the turkishEqualFold function
 func turkishEqualFold(r1, r2 rune) bool {
-	if folded, ok := turkishCaseFolding[r1]; ok {
-		return folded == r2
+	// Check if r1 or r2 is a special Turkish character
+	if fold1, ok1 := turkishFoldMap[r1]; ok1 {
+		return r2 == r1 || r2 == fold1
 	}
+	if fold2, ok2 := turkishFoldMap[r2]; ok2 {
+		return r1 == r2 || r1 == fold2
+	}
+	// Use default Unicode case folding for other characters
 	return unicode.ToLower(r1) == unicode.ToLower(r2)
 }
 
+// Update the hasPrefix method of inputString
 func (i *inputString) hasPrefix(re *Regexp) bool {
-	n := len(re.prefix)
 	if re.prefixFoldCase {
-		if len(i.str) < n {
+		prefixRunes := []rune(re.prefix)
+		n := len(prefixRunes)
+		if len([]rune(i.str)) < n {
 			return false
 		}
-		for j := 0; j < n; j++ {
-			if !turkishEqualFold(rune(i.str[j]), rune(re.prefix[j])) {
+		for j, r := range []rune(i.str[:n]) {
+			if !turkishEqualFold(r, prefixRunes[j]) {
 				return false
 			}
 		}
@@ -443,19 +445,13 @@ func (i *inputString) hasPrefix(re *Regexp) bool {
 	return strings.HasPrefix(i.str, re.prefix)
 }
 
+// Update the index method of inputString
 func (i *inputString) index(re *Regexp, pos int) int {
 	if re.prefixFoldCase {
-		n := len(re.prefix)
-		// Brute-force compare at every position
+		n := len(re.prefixBytes)
+		// Brute-force compare at every position; could replace with sophisticated algo like strings.Index
 		for p := pos; p+n <= len(i.str); {
-			match := true
-			for j := 0; j < n; j++ {
-				if !turkishEqualFold(rune(i.str[p+j]), rune(re.prefix[j])) {
-					match = false
-					break
-				}
-			}
-			if match {
+			if turkishEqualFold(rune(i.str[p]), rune(re.prefix[0])) {
 				return p - pos
 			}
 			_, w := i.step(p)
