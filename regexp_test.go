@@ -65,6 +65,8 @@ var (
 		".*foo.?",
 		".?foo.+",
 		"foo.?|bar",
+		// Turkish case-insensitive matching
+		"(?i:ÜĞİŞÇÖI)", //"(?i:üğişçöı)",
 	}
 	values = []string{
 		"foo", " foo bar", "bar", "buzz\nbar", "bar foo", "bfoo", "\n", "\nfoo", "foo\n", "hello foo world", "hello foo\n world", "",
@@ -74,6 +76,8 @@ var (
 
 		// Values matching / not matching the test regexps on long alternations.
 		"zQPbMkNO", "zQPbMkNo", "jyyfj00j0061", "jyyfj00j006", "jyyfj00j00612", "NNSPdvMi", "NNSPdvMiXXX", "NNSPdvMixxx", "nnSPdvMi", "nnSPdvMiXXX",
+		// Turkish case variations
+		"ÜĞİŞÇÖI", "üğişçöı", "ÜğİşÇöI", "üĞiŞçÖı",
 	}
 )
 

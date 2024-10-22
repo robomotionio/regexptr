@@ -403,38 +403,35 @@ func (i *inputString) canCheckPrefix() bool {
 	return true
 }
 
-var turkishCaseFolding = map[rune]rune{
-	'İ': 'i',
-	'I': 'ı',
-	'ı': 'I',
-	'i': 'İ',
-	'Ğ': 'ğ',
-	'ğ': 'Ğ',
-	'Ü': 'ü',
-	'ü': 'Ü',
-	'Ş': 'ş',
-	'ş': 'Ş',
-	'Ç': 'ç',
-	'ç': 'Ç',
-	'Ö': 'ö',
-	'ö': 'Ö',
-}
-
+// turkishEqualFold performs case-insensitive matching for Turkish characters
 func turkishEqualFold(r1, r2 rune) bool {
-	if folded, ok := turkishCaseFolding[r1]; ok {
-		return folded == r2
+	if fold1, ok := turkishFoldMap[r1]; ok {
+		return r2 == r1 || r2 == fold1
 	}
+	if fold2, ok := turkishFoldMap[r2]; ok {
+		return r1 == r2 || r1 == fold2
+	}
+
+	// Default to Unicode case folding for other characters
 	return unicode.ToLower(r1) == unicode.ToLower(r2)
 }
 
+// turkishFoldMap defines case folding for Turkish-specific characters
+var turkishFoldMap = map[rune]rune{
+	'i': 'İ', 'İ': 'i',
+	'ı': 'I', 'I': 'ı',
+}
+
 func (i *inputString) hasPrefix(re *Regexp) bool {
-	n := len(re.prefix)
 	if re.prefixFoldCase {
-		if len(i.str) < n {
+		prefixRunes := []rune(re.prefix)
+		strRunes := []rune(i.str)
+		n := len(prefixRunes)
+		if len(strRunes) < n {
 			return false
 		}
-		for j := 0; j < n; j++ {
-			if !turkishEqualFold(rune(i.str[j]), rune(re.prefix[j])) {
+		for j, r := range strRunes[:n] {
+			if !turkishEqualFold(r, prefixRunes[j]) {
 				return false
 			}
 		}
@@ -445,17 +442,10 @@ func (i *inputString) hasPrefix(re *Regexp) bool {
 
 func (i *inputString) index(re *Regexp, pos int) int {
 	if re.prefixFoldCase {
-		n := len(re.prefix)
-		// Brute-force compare at every position
+		n := len(re.prefixBytes)
+		// Brute-force compare at every position; could replace with sophisticated algo like strings.Index
 		for p := pos; p+n <= len(i.str); {
-			match := true
-			for j := 0; j < n; j++ {
-				if !turkishEqualFold(rune(i.str[p+j]), rune(re.prefix[j])) {
-					match = false
-					break
-				}
-			}
-			if match {
+			if turkishEqualFold(rune(i.str[p]), rune(re.prefix[0])) {
 				return p - pos
 			}
 			_, w := i.step(p)
