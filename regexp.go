@@ -403,42 +403,25 @@ func (i *inputString) canCheckPrefix() bool {
 	return true
 }
 
-// Update the turkishEqualFold function
+// turkishEqualFold performs case-insensitive matching for Turkish characters
 func turkishEqualFold(r1, r2 rune) bool {
-	// Special handling for Turkish I/i/İ/ı
-	switch r1 {
-	case 'i', 'İ':
-		return r2 == 'i' || r2 == 'İ'
-	case 'ı', 'I':
-		return r2 == 'ı' || r2 == 'I'
-	}
-	switch r2 {
-	case 'i', 'İ':
-		return r1 == 'i' || r1 == 'İ'
-	case 'ı', 'I':
-		return r1 == 'ı' || r1 == 'I'
-	}
-	// For other characters, use the existing turkishFoldMap
 	if fold1, ok := turkishFoldMap[r1]; ok {
 		return r2 == r1 || r2 == fold1
 	}
 	if fold2, ok := turkishFoldMap[r2]; ok {
 		return r1 == r2 || r1 == fold2
 	}
-	// Use default Unicode case folding for other characters
+
+	// Default to Unicode case folding for other characters
 	return unicode.ToLower(r1) == unicode.ToLower(r2)
 }
 
-// The turkishFoldMap remains the same
+// turkishFoldMap defines case folding for Turkish-specific characters
 var turkishFoldMap = map[rune]rune{
-	'ü': 'Ü', 'Ü': 'ü',
-	'ğ': 'Ğ', 'Ğ': 'ğ',
-	'ş': 'Ş', 'Ş': 'ş',
-	'ç': 'Ç', 'Ç': 'ç',
-	'ö': 'Ö', 'Ö': 'ö',
+	'i': 'İ', 'İ': 'i',
+	'ı': 'I', 'I': 'ı',
 }
 
-// Update the hasPrefix method of inputString
 func (i *inputString) hasPrefix(re *Regexp) bool {
 	if re.prefixFoldCase {
 		prefixRunes := []rune(re.prefix)
@@ -457,7 +440,6 @@ func (i *inputString) hasPrefix(re *Regexp) bool {
 	return strings.HasPrefix(i.str, re.prefix)
 }
 
-// Update the index method of inputString
 func (i *inputString) index(re *Regexp, pos int) int {
 	if re.prefixFoldCase {
 		n := len(re.prefixBytes)
