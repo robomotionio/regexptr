@@ -408,15 +408,15 @@ func turkishEqualFold(r1, r2 rune) bool {
 	// Special handling for Turkish I/i/İ/ı
 	switch r1 {
 	case 'i', 'İ':
-		return r2 == 'i' || r2 == 'İ' || r2 == 'I' || r2 == 'ı'
+		return r2 == 'i' || r2 == 'İ'
 	case 'ı', 'I':
-		return r2 == 'ı' || r2 == 'I' || r2 == 'i' || r2 == 'İ'
+		return r2 == 'ı' || r2 == 'I'
 	}
 	switch r2 {
 	case 'i', 'İ':
-		return r1 == 'i' || r1 == 'İ' || r1 == 'I' || r1 == 'ı'
+		return r1 == 'i' || r1 == 'İ'
 	case 'ı', 'I':
-		return r1 == 'ı' || r1 == 'I' || r1 == 'i' || r1 == 'İ'
+		return r1 == 'ı' || r1 == 'I'
 	}
 	// For other characters, use the existing turkishFoldMap
 	if fold1, ok := turkishFoldMap[r1]; ok {
