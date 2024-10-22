@@ -403,10 +403,34 @@ func (i *inputString) canCheckPrefix() bool {
 	return true
 }
 
-// Add this map for Turkish-specific case folding
+// Update the turkishEqualFold function
+func turkishEqualFold(r1, r2 rune) bool {
+	// Special handling for Turkish I/i/İ/ı
+	switch r1 {
+	case 'i', 'İ':
+		return r2 == 'i' || r2 == 'İ' || r2 == 'I' || r2 == 'ı'
+	case 'ı', 'I':
+		return r2 == 'ı' || r2 == 'I' || r2 == 'i' || r2 == 'İ'
+	}
+	switch r2 {
+	case 'i', 'İ':
+		return r1 == 'i' || r1 == 'İ' || r1 == 'I' || r1 == 'ı'
+	case 'ı', 'I':
+		return r1 == 'ı' || r1 == 'I' || r1 == 'i' || r1 == 'İ'
+	}
+	// For other characters, use the existing turkishFoldMap
+	if fold1, ok := turkishFoldMap[r1]; ok {
+		return r2 == r1 || r2 == fold1
+	}
+	if fold2, ok := turkishFoldMap[r2]; ok {
+		return r1 == r2 || r1 == fold2
+	}
+	// Use default Unicode case folding for other characters
+	return unicode.ToLower(r1) == unicode.ToLower(r2)
+}
+
+// The turkishFoldMap remains the same
 var turkishFoldMap = map[rune]rune{
-	'i': 'İ', 'I': 'ı',
-	'ı': 'I', 'İ': 'i',
 	'ü': 'Ü', 'Ü': 'ü',
 	'ğ': 'Ğ', 'Ğ': 'ğ',
 	'ş': 'Ş', 'Ş': 'ş',
@@ -414,28 +438,16 @@ var turkishFoldMap = map[rune]rune{
 	'ö': 'Ö', 'Ö': 'ö',
 }
 
-// Update the turkishEqualFold function
-func turkishEqualFold(r1, r2 rune) bool {
-	// Check if r1 or r2 is a special Turkish character
-	if fold1, ok1 := turkishFoldMap[r1]; ok1 {
-		return r2 == r1 || r2 == fold1
-	}
-	if fold2, ok2 := turkishFoldMap[r2]; ok2 {
-		return r1 == r2 || r1 == fold2
-	}
-	// Use default Unicode case folding for other characters
-	return unicode.ToLower(r1) == unicode.ToLower(r2)
-}
-
 // Update the hasPrefix method of inputString
 func (i *inputString) hasPrefix(re *Regexp) bool {
 	if re.prefixFoldCase {
 		prefixRunes := []rune(re.prefix)
+		strRunes := []rune(i.str)
 		n := len(prefixRunes)
-		if len([]rune(i.str)) < n {
+		if len(strRunes) < n {
 			return false
 		}
-		for j, r := range []rune(i.str[:n]) {
+		for j, r := range strRunes[:n] {
 			if !turkishEqualFold(r, prefixRunes[j]) {
 				return false
 			}
