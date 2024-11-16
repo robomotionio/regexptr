@@ -58,6 +58,13 @@ const (
 	OpAlternate                    // matches alternation of Subs
 )
 
+const (
+	TurkishI    rune = 'İ' // Turkish uppercase dotted I
+	Turkishi    rune = 'i' // Latin lowercase i
+	TurkishI_   rune = 'I' // Latin uppercase I
+	TurkishDoti rune = 'ı' // Turkish lowercase dotless i
+)
+
 const opPseudo Op = 128 // where pseudo-ops start
 
 // Equal reports whether x and y have identical structure.
