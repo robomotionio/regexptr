@@ -370,7 +370,7 @@ func (p *parser) literal(r rune) {
 	re := p.newRegexp(OpLiteral)
 	re.Flags = p.flags
 	if p.flags&FoldCase != 0 {
-		r = minFoldRune(r)
+		r = minFoldRune(r, p.flags)
 	}
 	re.Rune0[0] = r
 	re.Rune = re.Rune0[:1]
@@ -378,7 +378,15 @@ func (p *parser) literal(r rune) {
 }
 
 // minFoldRune returns the minimum rune fold-equivalent to r.
-func minFoldRune(r rune) rune {
+func minFoldRune(r rune, flags Flags) rune {
+	// Special handling for Turkish i/I characters
+	if flags&Turkish != 0 {
+		switch r {
+		case 'i', 'İ', 'I', 'ı':
+			return r // Preserve Turkish i/I variants as-is during parsing
+		}
+	}
+
 	if r < minFold || r > maxFold {
 		return r
 	}
