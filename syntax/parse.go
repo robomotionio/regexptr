@@ -57,6 +57,7 @@ type Flags uint16
 
 const (
 	FoldCase      Flags = 1 << iota // case-insensitive match
+	Turkish                         // use Turkish case folding rules
 	Literal                         // treat pattern as literal string
 	ClassNL                         // allow character classes like [^a-z] and [[:space:]] to match newline
 	DotNL                           // allow . to match newline
