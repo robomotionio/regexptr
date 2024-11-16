@@ -123,6 +123,48 @@ func (re *Regexp) Copy() *Regexp {
 	return &re2
 }
 
+// Add new function to handle Turkish case folding
+func compileTurkish(re *syntax.Regexp) *syntax.Regexp {
+
+	if re.Op == syntax.OpLiteral && re.Flags&syntax.FoldCase != 0 {
+		runes := make([]rune, len(re.Rune))
+		for i, r := range re.Rune {
+			switch r {
+			case syntax.TurkishI:
+				runes[i] = syntax.Turkishi
+			case syntax.TurkishDoti:
+				runes[i] = syntax.TurkishI_
+			case syntax.TurkishI_:
+				runes[i] = syntax.TurkishDoti
+			case syntax.Turkishi:
+				runes[i] = syntax.TurkishI
+			default:
+				runes[i] = unicode.SimpleFold(r)
+			}
+		}
+		re.Rune = runes
+	}
+
+	for i := range re.Sub {
+		re.Sub[i] = compileTurkish(re.Sub[i])
+	}
+	return re
+}
+
+// CompileTurkish is like Compile but enables Turkish case-folding rules.
+func CompileTurkish(expr string) (*Regexp, error) {
+	return compile(expr, syntax.Perl|syntax.Turkish, false)
+}
+
+// MustCompileTurkish is like MustCompile but enables Turkish case-folding rules.
+func MustCompileTurkish(expr string) *Regexp {
+	regexp, err := CompileTurkish(expr)
+	if err != nil {
+		panic(`regexp: CompileTurkish(` + quote(expr) + `): ` + err.Error())
+	}
+	return regexp
+}
+
 // Compile parses a regular expression and returns, if successful,
 // a [Regexp] object that can be used to match against text.
 //
@@ -175,6 +217,12 @@ func compile(expr string, mode syntax.Flags, longest bool) (*Regexp, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Add Turkish case-folding if Turkish mode is enabled
+	if mode&syntax.Turkish != 0 {
+		re = compileTurkish(re)
+	}
+
 	maxCap := re.MaxCap()
 	capNames := re.CapNames()
 
